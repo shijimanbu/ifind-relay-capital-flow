@@ -1,0 +1,13 @@
+.ifind_probe/
+__pycache__/
+*.py[cod]
+*.log
+*.err.log
+*.out.log
+.env
+.env.*
+codex.json
+.codex/
+wechat_history_*/
+scrape_wechat_history.py
+wechat_capture_strategy.md
