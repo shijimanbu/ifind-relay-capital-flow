@@ -47,6 +47,8 @@ python .\ifind_relay_monitor.py --date 2026-05-22 --interval 30
 http://127.0.0.1:8765
 ```
 
+默认会监听 `0.0.0.0:8765`。同一局域网里的其他设备可以用这台机器的局域网 IP 访问，例如 `http://192.168.x.x:8765`。
+
 服务端会对 iFinD 中继做 30 秒节流，多开几个浏览器页面也不会让中继请求数成倍增加。当天历史点会缓存到 `.ifind_probe/live_state_YYYYMMDD.json`，服务重启后可以续上。
 
 没有 key 或非交易时间调 UI 时，可以用模拟模式：

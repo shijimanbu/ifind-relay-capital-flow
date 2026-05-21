@@ -305,7 +305,7 @@ def make_handler(monitor: CapitalFlowMonitor) -> type[SimpleHTTPRequestHandler]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the local iFinD relay capital-flow monitor.")
-    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--date", default=date.today().isoformat(), help="Trade date, YYYY-MM-DD.")
     parser.add_argument("--interval", type=int, default=30, help="Minimum seconds between relay fetches.")
@@ -327,7 +327,10 @@ def main() -> int:
     )
     server = ThreadingHTTPServer((args.host, args.port), make_handler(monitor))
     mode = "mock" if args.mock else "ifind"
-    print(f"iFinD relay monitor running in {mode} mode: http://{args.host}:{args.port}")
+    browser_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
+    print(f"iFinD relay monitor running in {mode} mode: http://{browser_host}:{args.port}")
+    if args.host == "0.0.0.0":
+        print(f"Listening on all interfaces. LAN clients can use this machine's IP with port {args.port}.")
     if not args.mock and not key:
         print("IFIND_RELAY_KEY is not configured; API responses will report the missing key until configured.")
     try:
