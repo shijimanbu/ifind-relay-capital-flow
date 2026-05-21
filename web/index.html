@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iFinD中继 资金流向监控</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1>iFinD中继</h1>
+          <p id="subtitle">资金流向实时监控</p>
+        </div>
+        <div class="status-strip">
+          <span id="sourceBadge" class="badge">连接中</span>
+          <span id="asOf">--:--:--</span>
+          <span id="nextFetch">30s</span>
+          <button id="refreshButton" type="button" title="立即刷新">刷新</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="chart-panel">
+          <div class="chart-head">
+            <div>
+              <h2 id="chartTitle">收盘资金流向</h2>
+              <span id="snapshotCount">0 个点</span>
+            </div>
+            <div class="range-tabs" aria-label="图表范围">
+              <button class="active" type="button" data-range="fixed">固定</button>
+              <button type="button" data-range="auto">自适应</button>
+            </div>
+          </div>
+          <canvas id="flowChart" width="980" height="1180"></canvas>
+        </div>
+
+        <aside class="ranking-panel">
+          <div class="ranking-head">
+            <h2>板块排行</h2>
+            <span id="boardCount">18</span>
+          </div>
+          <div id="rankingList" class="ranking-list"></div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

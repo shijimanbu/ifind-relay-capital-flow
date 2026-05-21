@@ -32,3 +32,25 @@ pip install -r requirements.txt
 
 生成图仅用于数据整理展示，不作为买卖依据。
 
+## 实时监控网页
+
+启动本地监控服务：
+
+```powershell
+$env:IFIND_RELAY_KEY="你的key"
+python .\ifind_relay_monitor.py --date 2026-05-22 --interval 30
+```
+
+然后打开：
+
+```text
+http://127.0.0.1:8765
+```
+
+服务端会对 iFinD 中继做 30 秒节流，多开几个浏览器页面也不会让中继请求数成倍增加。当天历史点会缓存到 `.ifind_probe/live_state_YYYYMMDD.json`，服务重启后可以续上。
+
+没有 key 或非交易时间调 UI 时，可以用模拟模式：
+
+```powershell
+python .\ifind_relay_monitor.py --mock --interval 5
+```
