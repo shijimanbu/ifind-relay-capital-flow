@@ -308,7 +308,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--date", default=date.today().isoformat(), help="Trade date, YYYY-MM-DD.")
-    parser.add_argument("--interval", type=int, default=30, help="Minimum seconds between relay fetches.")
+    parser.add_argument("--interval", type=int, default=5, help="Minimum seconds between relay fetches.")
     parser.add_argument("--base-url", default=os.environ.get("IFIND_RELAY_BASE_URL", DEFAULT_BASE_URL))
     parser.add_argument("--key", default=None, help="Relay key. Prefer IFIND_RELAY_KEY.")
     parser.add_argument("--mock", action="store_true", help="Use deterministic local data for UI smoke tests.")

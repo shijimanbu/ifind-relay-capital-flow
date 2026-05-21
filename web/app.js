@@ -2,7 +2,7 @@ const state = {
   data: null,
   rangeMode: "fixed",
   timer: null,
-  pollMs: 30000,
+  pollMs: 5000,
 };
 
 const els = {
@@ -247,7 +247,7 @@ async function loadData(force = false) {
     const response = await fetch(`/api/capital-flow${force ? "?force=1" : ""}`, { cache: "no-store" });
     const data = await response.json();
     state.data = data;
-    state.pollMs = Math.max(5000, (data.poll_seconds || 30) * 1000);
+    state.pollMs = Math.max(5000, (data.poll_seconds || 5) * 1000);
     setStatus(data);
     renderRanking(data);
     drawChart(data);
