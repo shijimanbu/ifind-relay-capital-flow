@@ -27,6 +27,7 @@ from generate_ifind_relay_capital_flow import (
 
 WEB_ROOT = repo_root() / "web"
 STATE_DIR = repo_root() / ".ifind_probe"
+DEFAULT_MAX_SNAPSHOTS = 10_000
 
 
 def now_local() -> datetime:
@@ -118,12 +119,14 @@ class CapitalFlowMonitor:
         base_url: str,
         key: str | None,
         mock: bool,
+        max_snapshots: int,
     ) -> None:
         self.trade_date = trade_date
         self.interval_seconds = interval_seconds
         self.base_url = base_url
         self.key = key
         self.mock = mock
+        self.max_snapshots = max_snapshots
         self.client = RelayClient(base_url, key) if key and not mock else None
         self.lock = threading.Lock()
         self.last_fetch_ts = 0.0
@@ -140,14 +143,14 @@ class CapitalFlowMonitor:
         except Exception:
             return
         if data.get("trade_date") == self.trade_date and isinstance(data.get("snapshots"), list):
-            self.snapshots = data["snapshots"][-720:]
+            self.snapshots = data["snapshots"][-self.max_snapshots :]
 
     def _save_state(self) -> None:
         STATE_DIR.mkdir(parents=True, exist_ok=True)
         payload = {
             "trade_date": self.trade_date,
             "updated_at": now_local().isoformat(timespec="seconds"),
-            "snapshots": self.snapshots[-720:],
+            "snapshots": self.snapshots[-self.max_snapshots :],
         }
         self.state_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -201,7 +204,7 @@ class CapitalFlowMonitor:
             self.snapshots[-1] = snapshot
         else:
             self.snapshots.append(snapshot)
-        self.snapshots = self.snapshots[-720:]
+        self.snapshots = self.snapshots[-self.max_snapshots :]
         self._save_state()
 
     def refresh_if_needed(self, force: bool = False) -> dict[str, Any]:
@@ -303,6 +306,17 @@ def make_handler(monitor: CapitalFlowMonitor) -> type[SimpleHTTPRequestHandler]:
     return MonitorHandler
 
 
+def start_background_collector(monitor: CapitalFlowMonitor) -> threading.Thread:
+    def collect() -> None:
+        while True:
+            monitor.refresh_if_needed()
+            time.sleep(max(1, min(5, monitor.interval_seconds)))
+
+    thread = threading.Thread(target=collect, name="ifind-capital-flow-collector", daemon=True)
+    thread.start()
+    return thread
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the local iFinD relay capital-flow monitor.")
     parser.add_argument("--host", default="0.0.0.0")
@@ -312,6 +326,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", default=os.environ.get("IFIND_RELAY_BASE_URL", DEFAULT_BASE_URL))
     parser.add_argument("--key", default=None, help="Relay key. Prefer IFIND_RELAY_KEY.")
     parser.add_argument("--mock", action="store_true", help="Use deterministic local data for UI smoke tests.")
+    parser.add_argument("--max-snapshots", type=int, default=DEFAULT_MAX_SNAPSHOTS)
     return parser.parse_args()
 
 
@@ -324,8 +339,10 @@ def main() -> int:
         base_url=args.base_url,
         key=key,
         mock=args.mock,
+        max_snapshots=max(100, args.max_snapshots),
     )
     server = ThreadingHTTPServer((args.host, args.port), make_handler(monitor))
+    start_background_collector(monitor)
     mode = "mock" if args.mock else "ifind"
     browser_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
     print(f"iFinD relay monitor running in {mode} mode: http://{browser_host}:{args.port}")
